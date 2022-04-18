@@ -1,0 +1,49 @@
+/*ul {
+    margin-left: -10px;
+  } */
+
+h1 {
+    text-align:left;
+}
+
+.e16nr0p32 {
+    margin-bottom: -1rem;
+}
+
+h5 {
+    text-align:left;
+}
+
+img {
+    margin-left: 10rem;
+    /*margin-right: 1rem;*/
+}
+
+.css-12oz5g7 {
+    flex: 1 1 0%;
+    width: 100%;
+    padding: 6rem 1rem 10rem;
+    max-width: 70rem;
+}
+
+ #MainMenu {
+    visibility: hidden;
+} 
+footer {
+    visibility: hidden;
+}
+header {
+    visibility: hidden;
+} 
+
+.e1fqkh3o2{
+	top: 62px;
+    position: inherit;
+}
+.e1fqkh3o0{
+	top: 3.9rem;
+	left: -0.5rem;
+}
+.navbar-dark{
+	background-color: #1E8449
+}
