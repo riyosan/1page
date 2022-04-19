@@ -21,13 +21,13 @@ from sklearn.metrics import confusion_matrix, classification_report
 
 image=Image.open('logo.png')
 # logo = st.columns((1.6, 0.7, 0.7))
-logo = st.columns((1, 1))
+logo = st.columns((1.2, 0.8, 1))
 
 with open("style.css") as f:
     st.markdown('<style>{}</style>'.format(f.read()), unsafe_allow_html=True)
 
 #page layout
-with logo[1]:
+with logo[2]:
 	st.image(image,width=200)
 with logo[0]:
 	st.markdown("""
@@ -336,7 +336,7 @@ st.markdown('''
 ## Training_Testing
 ''')
 expander2 = st.expander(
-  "Data preprocessing adalah teknik awal data mining untuk mengubah data mentah menjadi format dan informasi yang lebih efisien dan bermanfaat.")
+  "Training adalah proses melatih algoritma agar mengenali pola dari suatu dataset, Testing adalah proses evaluasi terhadap performa algoritma yang sudah di latih.")
 expander2.markdown(" ")
 with st.sidebar.header('2. Set Parameter'):
   split_size = st.sidebar.slider('Rasio Pembagian Data (% Untuk Data Latih)', 10, 90, 80, 5)
@@ -344,10 +344,10 @@ with st.sidebar.header('2. Set Parameter'):
   parameter_n_estimators = st.sidebar.slider('Number of estimators (n_estimators)', 10, 100, 50, 10)
   tetangga = st.sidebar.slider('Jumlah K (KNN)', 11, 101, 55, 11)
 
-# if "load_state" not in st.session_state:
-#   st.session_state.load_state = False
-if st.sidebar.button('Latih & Uji'):# or st.session_state.load_state:
-  # st.session_state.load_state = True
+if "load_state" not in st.session_state:
+  st.session_state.load_state = False
+if st.sidebar.button('Latih & Uji') or st.session_state.load_state:
+  st.session_state.load_state = True
   df_numerik = pd.read_csv('data/df_numerik.csv')
 #   df_numerik = funneling(df3)
   fitur_baru = choose_feature(df_numerik, jumlah_fitur)
@@ -357,49 +357,49 @@ if st.sidebar.button('Latih & Uji'):# or st.session_state.load_state:
   matrik_rf, cm_label_rf, rf = random_forest(X_train, X_test, y_train, y_test, parameter_n_estimators)
   matrik_stack, cm_label_stack, y_test_pred = stack_model(X_train, X_test, y_train, y_test, tetangga, nb, rf)
 
-  nb_container = st.columns((1.1, 0.9))
+  nb_container = expander2.columns((0.8, 1))
   #page layout
   with nb_container[0]:
     st.write("2a. Naive Bayes report using sklearn")
     st.text('Naive Bayes Report:\n ' + matrik_nb)
-  st.write(" ")
-  st.write(" ")
-  st.write(" ")
+  # st.write(" ")
+  # st.write(" ")
+  # st.write(" ")
   with nb_container[1]:
     cm_label_nb.index.name = 'Actual'
     cm_label_nb.columns.name = 'Predicted'
     sns.heatmap(cm_label_nb, annot=True, cmap='Blues', fmt='g')
     st.set_option('deprecation.showPyplotGlobalUse', False)
     st.pyplot()
-  st.write(" ")
-  st.write(" ")
+  # st.write(" ")
+  # st.write(" ")
 
   # Evaluate model
-  rf_container = st.columns((1.1, 0.9))
+  rf_container = expander2.columns((0.8, 1))
   #page layout
   with rf_container[0]:
     st.write("2b. Random Forest report using sklearn")
     st.text('Random Forest Report:\n ' + matrik_rf)
-  st.write(" ")
-  st.write(" ")
-  st.write(" ")
+  # st.write(" ")
+  # st.write(" ")
+  # st.write(" ")
   with rf_container[1]:
     cm_label_rf.index.name = 'Actual'
     cm_label_rf.columns.name = 'Predicted'
     sns.heatmap(cm_label_rf, annot=True, cmap='Blues', fmt='g')
     st.set_option('deprecation.showPyplotGlobalUse', False)
     st.pyplot()
-  st.write(" ")
-  st.write(" ")
+  # st.write(" ")
+  # st.write(" ")
 
-  stack_container = st.columns((1.1, 0.9))
+  stack_container = expander2.columns((0.8, 1))
   #page layout
   with stack_container[0]:
     st.write("2c. Stack report using sklearn")
     st.text('Stack Report:\n ' + matrik_stack)
-  st.write(" ")
-  st.write(" ")
-  st.write(" ")
+  # st.write(" ")
+  # st.write(" ")
+  # st.write(" ")
 
   with stack_container[1]:
     cm_label_stack.index.name = 'Actual'
@@ -407,8 +407,7 @@ if st.sidebar.button('Latih & Uji'):# or st.session_state.load_state:
     sns.heatmap(cm_label_stack, annot=True, cmap='Blues', fmt='g')
     st.set_option('deprecation.showPyplotGlobalUse', False)
     st.pyplot()
-  st.write(" ")
-  st.write(" ")      
+  st.write(" ")  
 
   #take df3 from apps/praproses.py
   df1 = df3
@@ -422,7 +421,7 @@ if st.sidebar.button('Latih & Uji'):# or st.session_state.load_state:
   hasil_akhir = pd.concat([y_pred_series, test_id], axis=1).dropna()
   hasil_akhir['Prediksi']=y_test_pred
   hasil_akhir = hasil_akhir[['user','Aktual','Prediksi']].reset_index(drop=True)
-  container_hasil_akhir = st.columns((0.8, 1.4, 0.8))
+  container_hasil_akhir = expander2.columns((0.8, 1.4, 0.8))
   with container_hasil_akhir[1]:
     st.text('Tabel Perbandingan Asli dan Prediksi:\n ')
     st.dataframe(hasil_akhir)
@@ -433,6 +432,9 @@ if st.sidebar.button('Latih & Uji'):# or st.session_state.load_state:
 st.markdown('''
 ## Predicting
 ''')
+expander3 = st.expander(
+  "Predicting adalah tahapan untuk menerapkan model yang sudah dilatih dan divalidasi, untuk membuat prediksi berdasarkan dataset baru yang sebelumnya belum pernah dikenali oleh model.")
+expander3.markdown(" ")
 st.sidebar.write(" ")
 st.sidebar.write(" ")
 with st.sidebar.header('3. Predict'):
@@ -441,14 +443,12 @@ data_pred = st.session_state.data_pred
 if data_pred is not None:
   dataset = data_pred
   df = load_dataset(dataset)
-  st.dataframe(df)
+  expander3.dataframe(df)
   df_pred = preprocessing(df)
   if st.sidebar.button("predict Data"):
     hasil_akhir, probabilitas = preprocessing_pred(df_pred)
-    layout = st.columns((1,1,1,1))
+    layout = expander3.columns((1,1,1,1))
     with layout[1]:
       st.write(hasil_akhir)
     with layout[2]:
       st.write(probabilitas)
-
-
