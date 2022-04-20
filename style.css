@@ -14,27 +14,17 @@ h5 {
     text-align:left;
 }
 
-img {
-    margin-left: 10rem;
-    /*margin-right: 1rem;*/
-}
-
-.css-12oz5g7 {
+/*.css-12oz5g7 {
     flex: 1 1 0%;
     width: 100%;
-    padding: 6rem 1rem 10rem;
-    max-width: 70rem;
-}
+    padding: 6rem 1rem 50rem;
+    max-width: 200rem;
+}*/
 
- #MainMenu {
-    visibility: hidden;
-} 
+
 footer {
     visibility: hidden;
 }
-header {
-    visibility: hidden;
-} 
 
 .e1fqkh3o2{
 	top: 62px;
@@ -46,4 +36,43 @@ header {
 }
 .navbar-dark{
 	background-color: #1E8449
+}
+
+.css-1n76uvr {
+	margin-top: -30px;
+    width: 900px;
+    right: 100px;
+    /* left: 50px; */
+    position: relative;
+    display: flex;
+    flex: 1 1 0%;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.css-1v0mbdj {
+    width: 100px;
+    margin-top: 25px;
+    margin-bottom: -13px;
+}
+
+.css-1j5p5eu {
+    width: 900px;
+    position: relative;
+    display: flex;
+    flex: 1 1 0%;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.css-1vbkkum {
+    height: 0rem;
+}
+
+.css-fk4es0 {
+    background-image: linear-gradient(90deg, rgb(128 221 111), rgb(255, 253, 128));
+}
+
+.css-wqwhw2 {
+    text-align: center;
 }
