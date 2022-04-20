@@ -21,22 +21,23 @@ from sklearn.metrics import confusion_matrix, classification_report
 
 image=Image.open('logo.png')
 # logo = st.columns((1.6, 0.7, 0.7))
-logo = st.columns((1.2, 0.8, 1))
+home = st.container()
+prepro = st.container()
+train = st.container()
+predict = st.container()
+logo = home.columns((1.2, 1, 0.5))
 
 with open("style.css") as f:
     st.markdown('<style>{}</style>'.format(f.read()), unsafe_allow_html=True)
 
 #page layout
 with logo[2]:
-	st.image(image,width=200)
+	st.image(image,width=160)
 with logo[0]:
-	st.markdown("""
-# Skripsi
-###### *Penggunaan Algoritma Stacking Ensemble Learning Dalam Memprediksi Pengguna Enroll.*
-""")
-	st.markdown("""
-**Riyo Santo Yosep - 171402020**
-""")
+  st.title('**Skripsi**')
+  st.markdown('''*Penggunaan Algoritma Stacking Ensemble Learning Dalam Memprediksi Pengguna Enroll.*''')
+  st.markdown('''**Riyo Santo Yosep - 171402020**''')
+
 #####################
 # Navigation
 #####################
@@ -274,7 +275,7 @@ def stack_model(X_train, X_test, y_train, y_test, tetangga, nb, rf):
 #####################
 # Preprocess
 #####################
-st.markdown('''
+prepro.markdown('''
 ## Preprocessing
 ''')
 # with st.expander("sebelum mulai training"):
@@ -283,48 +284,51 @@ with st.sidebar.header('1. Preprocess'):
   st.sidebar.write(" ")
   st.sidebar.write(" ")
 dataset = st.session_state.dataset
-expander = st.expander(
+expander = prepro.expander(
   "Data preprocessing adalah teknik awal data mining untuk mengubah data mentah menjadi format dan informasi yang lebih efisien dan bermanfaat.")
 expander.markdown(" ")
 if dataset is not None:
   df=load_dataset(dataset)
+  expander.subheader('Fintech Dataset')
   expander.write(df)
+  expander.markdown("""---""")
+  expander.subheader('Revisi numscreens')
   df1=preprocessing(df)
   container = expander.columns((1.9, 1.1))
+  expander.caption('merevisi nilai yang ada pada kolom numscreens.')
+  expander.markdown("""---""")
   df1_types = df1.dtypes.astype(str)
-  
-  # with st.expander("sebelum mulai training"):
   with container[0]:
     st.write(df1)
-    st.markdown('''
-    Merevisi kolom numscreens''')
-    # st.text('Merevisi kolom numscreens')
   with container[1]:
     st.write(df1_types)
-    st.markdown('''
-    Merevisi kolom numscreens''')
-    # st.text('Tipe data setiap kolom')
-  
+
+  expander.subheader('Revisi hour')
   df2=preprocessing_hour(df1)
   container1 = expander.columns((1.9, 1.1))
+  expander.caption('merevisi isi kolom hour dan merubah tipe data ke numerik.')
+  expander.markdown("""---""")
   df2_types = df2.dtypes.astype(str)
   with container1[0]:
     st.write(df2)
-    st.text('Merevisi kolom hour')
   with container1[1]:
     st.write(df2_types)
-    st.text('Tipe data setiap kolom')
 
+  expander.subheader('One-hot encoding')
   df3=preprocessing_top_screens(df2)
   expander.write(df3)
-  expander.text('Mengubah isi screen_list menjadi kolom baru')
+  expander.caption('membuat kolom baru berdasarkan isi kolom screen_list.')
+  expander.markdown("""---""")
 
+  expander.subheader('Hasil akhir')
   df_numerik, mutuals = funneling(df3)
   expander.write(df_numerik)
-  mutuals.sort_values(ascending=False).plot.bar(title='urutannya')
+  expander.caption('menghapus kolom-kolom yang tidak penting.')
+  mutuals.sort_values(ascending=False).plot.bar(title='Korelasi tiap kolom terhadap keputusan enrolled')
   st.set_option('deprecation.showPyplotGlobalUse', False)
   expander.pyplot()
-  expander.text('mengurutkan korelasi setiap kolom terhadap kelasnya(enrolled)')
+  expander.caption('mengurutkan korelasi setiap kolom terhadap kelasnya(enrolled)')
+  expander.markdown("""---""")
 # else:
 #   st.write("upload lah masak enggak")
 
@@ -332,10 +336,10 @@ if dataset is not None:
 # Train_test
 #####################
 
-st.markdown('''
+train.markdown('''
 ## Training_Testing
 ''')
-expander2 = st.expander(
+expander2 = train.expander(
   "Training adalah proses melatih algoritma agar mengenali pola dari suatu dataset, Testing adalah proses evaluasi terhadap performa algoritma yang sudah di latih.")
 expander2.markdown(" ")
 with st.sidebar.header('2. Set Parameter'):
@@ -410,29 +414,32 @@ if st.sidebar.button('Latih & Uji') or st.session_state.load_state:
   st.write(" ")  
 
   #take df3 from apps/praproses.py
-  df1 = df3
-  var_enrolled = df1['enrolled']
-  # #membagi menjadi train dan test untuk mencari user id
-  X_train, X_test, y_train, y_test = train_test_split(df1, df1['enrolled'], test_size=(100-split_size)/100, random_state=111)
-  train_id = X_train['user']
-  test_id = X_test['user']
-  #menggabungkan semua
-  y_pred_series = pd.Series(y_test).rename('Aktual',inplace=True)
-  hasil_akhir = pd.concat([y_pred_series, test_id], axis=1).dropna()
-  hasil_akhir['Prediksi']=y_test_pred
-  hasil_akhir = hasil_akhir[['user','Aktual','Prediksi']].reset_index(drop=True)
-  container_hasil_akhir = expander2.columns((0.8, 1.4, 0.8))
-  with container_hasil_akhir[1]:
-    st.text('Tabel Perbandingan Asli dan Prediksi:\n ')
-    st.dataframe(hasil_akhir)
+  try:
+    df1 = df3
+    var_enrolled = df1['enrolled']
+    # #membagi menjadi train dan test untuk mencari user id
+    X_train, X_test, y_train, y_test = train_test_split(df1, df1['enrolled'], test_size=(100-split_size)/100, random_state=111)
+    train_id = X_train['user']
+    test_id = X_test['user']
+    #menggabungkan semua
+    y_pred_series = pd.Series(y_test).rename('Aktual',inplace=True)
+    hasil_akhir = pd.concat([y_pred_series, test_id], axis=1).dropna()
+    hasil_akhir['Prediksi']=y_test_pred
+    hasil_akhir = hasil_akhir[['user','Aktual','Prediksi']].reset_index(drop=True)
+    container_hasil_akhir = expander2.columns((0.8, 1.4, 0.8))
+    with container_hasil_akhir[1]:
+      st.text('Tabel Perbandingan Asli dan Prediksi:\n ')
+      st.dataframe(hasil_akhir)
+  except:
+    expander2.error('Please do preprocessing first')
 
 #####################
 # Predict
 #####################
-st.markdown('''
+predict.markdown('''
 ## Predicting
 ''')
-expander3 = st.expander(
+expander3 = predict.expander(
   "Predicting adalah tahapan untuk menerapkan model yang sudah dilatih dan divalidasi, untuk membuat prediksi berdasarkan dataset baru yang sebelumnya belum pernah dikenali oleh model.")
 expander3.markdown(" ")
 st.sidebar.write(" ")
