@@ -34,7 +34,7 @@ with open("style.css") as f:
 with logo[2]:
 	st.image(image,width=160)
 with logo[0]:
-  st.title('**Skripsi**')
+  st.title('**Tugas Akhir**')
   st.markdown('''*Penggunaan Algoritma Stacking Ensemble Learning Dalam Memprediksi Pengguna Enroll.*''')
   st.markdown('''**Riyo Santo Yosep - 171402020**''')
 
@@ -93,7 +93,7 @@ def preprocessing_hour(df1):
   #karena tipe data first_open dan enrolled_date itu adalah string, maka perlu diubah ke datetime
   df1.first_open=[parser.parse(i) for i in df1.first_open]
   #didalam dataset orang yg belum langganan itu NAN, maka jika i=string biarin, klo ga string diuah ke datetime kolom nan nya biarin tetap nat
-  df1.enrolled_date=[parser.parse(i) if isinstance(i, str)else i for i in df1.enrolled_date]
+  df1.enrolled_date=[parser.parse(i) if isinstance(i, str) else i for i in df1.enrolled_date]
   #membuat kolom selisih , yaitu menghitung berapa lama orang yg firs_open menjadi enrolled
   df1['selisih']=(df1.enrolled_date-df1.first_open).astype('timedelta64[h]')
   #karna digrafik menunjukkan orang kebanyakan enroll selama 24 jam pertama, maka kalau lebih dari 24 jam dianggap ga penting
@@ -167,11 +167,13 @@ def preprocessing_pred(df_pred):
   pred_numerik = scaler.transform(pred_numerik)
   model = joblib.load('data/stack_model.pkl')
   prediksi = model.predict(pred_numerik)
+  prediksi2 = pd.DataFrame(prediksi)
   probabilitas = model.predict_proba(pred_numerik)
   user_id = df['user']
-  prediksi_akhir = pd.Series(prediksi)
+  prediksi_akhir = pd.Series(prediksi).rename('Pred',inplace=True)
   hasil_akhir= pd.concat([user_id,prediksi_akhir], axis=1).dropna()
-  return probabilitas, hasil_akhir
+  return probabilitas, hasil_akhir, prediksi2
+
 
 @st.experimental_memo
 def funneling(df3):
@@ -229,7 +231,7 @@ def standarization(fitur_baru):
 @st.experimental_memo
 def split(df_numerik,pilhan_kolom, split_size):
   df=df_numerik.copy()
-  X_train, X_test, y_train, y_test = train_test_split(pilhan_kolom, df['enrolled'],test_size=(100-split_size)/100, random_state=111)
+  X_train, X_test, y_train, y_test = train_test_split(pilhan_kolom, df['enrolled'],test_size=(100-split_size)/100, random_state=1)
   return X_train, X_test, y_train, y_test
 
 @st.experimental_memo
@@ -244,7 +246,7 @@ def naive_bayes(X_train, X_test, y_train, y_test):
 
 @st.experimental_memo
 def random_forest(X_train, X_test, y_train, y_test, parameter_n_estimators):
-  rf = RandomForestClassifier(n_estimators=parameter_n_estimators, max_depth=2, random_state=42) # Define classifier
+  rf = RandomForestClassifier(n_estimators=parameter_n_estimators,criterion="entropy", max_depth=2, random_state=1) # Define classifier
   rf.fit(X_train, y_train)
   # Make predictions
   y_test_pred = rf.predict(X_test)
@@ -252,15 +254,14 @@ def random_forest(X_train, X_test, y_train, y_test, parameter_n_estimators):
   cm_label_rf = pd.DataFrame(confusion_matrix(y_test, y_test_pred), columns=np.unique(y_test), index=np.unique(y_test))
   return matrik_rf, cm_label_rf, rf
 
-@st.cache
-# @st.experimental_singleton
+
 def stack_model(X_train, X_test, y_train, y_test, tetangga, nb, rf):
   # Build stack model
   estimator_list = [
       ('nb',nb),
       ('rf',rf)]
   stack_model = StackingClassifier(
-      estimators=estimator_list, final_estimator=KNeighborsClassifier(tetangga),cv=5
+      estimators=estimator_list, final_estimator=KNeighborsClassifier(tetangga, metric="euclidean"),cv=5
   )
   # Train stacked model
   stack_model.fit(X_train, y_train)
@@ -329,8 +330,8 @@ if dataset is not None:
   expander.pyplot()
   expander.caption('mengurutkan korelasi setiap kolom terhadap kelasnya(enrolled)')
   expander.markdown("""---""")
-# else:
-#   st.write("upload lah masak enggak")
+else:
+  expander.warning('Upload Dataset Pada Sidebar No.1')
 
 #####################
 # Train_test
@@ -418,7 +419,7 @@ if st.sidebar.button('Latih & Uji') or st.session_state.load_state:
     df1 = df3
     var_enrolled = df1['enrolled']
     # #membagi menjadi train dan test untuk mencari user id
-    X_train, X_test, y_train, y_test = train_test_split(df1, df1['enrolled'], test_size=(100-split_size)/100, random_state=111)
+    X_train, X_test, y_train, y_test = train_test_split(df1, df1['enrolled'], test_size=(100-split_size)/100, random_state=1)
     train_id = X_train['user']
     test_id = X_test['user']
     #menggabungkan semua
@@ -432,7 +433,8 @@ if st.sidebar.button('Latih & Uji') or st.session_state.load_state:
       st.dataframe(hasil_akhir)
   except:
     expander2.error('Please do preprocessing first')
-
+else:
+  expander2.warning('Latih & Uji Terlebih Dahulu Pada Sidebar No.2')
 #####################
 # Predict
 #####################
@@ -445,17 +447,29 @@ expander3.markdown(" ")
 st.sidebar.write(" ")
 st.sidebar.write(" ")
 with st.sidebar.header('3. Predict'):
-  data_pred = st.sidebar.file_uploader("Unggah File CSV",type=['csv'], key="data_pred")
+  data_pred = st.sidebar.file_uploader("Upload your file",type=['csv'], key="data_pred")
 data_pred = st.session_state.data_pred
 if data_pred is not None:
   dataset = data_pred
   df = load_dataset(dataset)
+  expander3.subheader('Predict Dataset')
   expander3.dataframe(df)
   df_pred = preprocessing(df)
-  if st.sidebar.button("predict Data"):
-    hasil_akhir, probabilitas = preprocessing_pred(df_pred)
+  if st.sidebar.button("Predict Data"):
+    hasil_akhir, probabilitas, prediksi2 = preprocessing_pred(df_pred)
     layout = expander3.columns((1,1,1,1))
     with layout[1]:
+      st.subheader('Probabilitas')
       st.write(hasil_akhir)
     with layout[2]:
+      st.subheader('Prediksi')
       st.write(probabilitas)
+    prediksi2['Enrolled']=prediksi2
+    prediksi3 = prediksi2[['Enrolled']].reset_index(drop=True)
+    jumlah = prediksi3.groupby('Enrolled').size()
+    jumlah.plot.bar(color="blue")
+    expander3.subheader('Visualisasi Perbandingan Prediksi')
+    st.set_option('deprecation.showPyplotGlobalUse', False)
+    expander3.pyplot()
+else:
+  expander3.warning('Upload Dataset Yang Ingin di Prediksi Pada Sidebar No.3')
