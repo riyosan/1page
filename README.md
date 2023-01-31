@@ -1,5 +1,8 @@
 # enrolled_prediction_streamlit
 aplikasi ini memprediksi user yang berpotensi enroll dan tidak enroll menggunakan python sebagai bahasa pemrograman dan streamlit sebagai framework aplikasi web
+
+https://youtu.be/1ZzPbsZmutk
+
 1. install requirements yang dibutuhkan
 - install anaconda
 - membuat environment
